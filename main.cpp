@@ -175,9 +175,6 @@ double getBonusPercent(string tier) {
     return 0.00;
 }
 
-// ==============================================
-// END OF PUBLIC COMMON AREA
-// ==============================================
 
 
 // ==============================================
@@ -199,8 +196,89 @@ void showMainMenu() {
 
 // R1: Load starting data
 void loadStartingData() {
-    // Write your R1 code here
+
+    // ---------------------------
+    // STEP 1: Load MEMBER data
+    // ---------------------------
+    memberCount = 4;
+
+    // Member 1
+    members[0].memberNumber = "M001";
+    members[0].name = "Chan Tai Man";
+    members[0].tier = "Gold";
+    members[0].passportNumber = "A12345678";
+    members[0].mrz = calculateMRZ("A12345678");
+    members[0].mileageBalance = 5000;
+    members[0].isActive = true;
+
+    // Member 2
+    members[1].memberNumber = "M002";
+    members[1].name = "Li Siu Hong";
+    members[1].tier = "Silver";
+    members[1].passportNumber = "B87654321";
+    members[1].mrz = calculateMRZ("B87654321");
+    members[1].mileageBalance = 2000;
+    members[1].isActive = true;
+
+    // Member 3
+    members[2].memberNumber = "M003";
+    members[2].name = "Wong Wing Yan";
+    members[2].tier = "Green";
+    members[2].passportNumber = "C11223344";
+    members[2].mrz = calculateMRZ("C11223344");
+    members[2].mileageBalance = 500;
+    members[2].isActive = true;
+
+    // Member 4
+    members[3].memberNumber = "M004";
+    members[3].name = "Cheung Hoi Ting";
+    members[3].tier = "Diamond";
+    members[3].passportNumber = "D99887766";
+    members[3].mrz = calculateMRZ("D99887766");
+    members[3].mileageBalance = 10000;
+    members[3].isActive = true;
+
+    // ---------------------------
+    // STEP 2: Load FLIGHT data
+    // ---------------------------
+    flightCount = 2;
+
+    // Flight 1
+    flights[0].memberNumber = "M001";
+    flights[0].flightNumber = "CC81";
+    flights[0].origin = "Hong Kong";
+    flights[0].destination = "London";
+    flights[0].cabinClass = "Business";
+    flights[0].departureDate = "01-07-2025";
+    flights[0].creationDate = systemDate;
+    flights[0].updated = false;
+
+    // Flight 2
+    flights[1].memberNumber = "M002";
+    flights[1].flightNumber = "CC31";
+    flights[1].origin = "Hong Kong";
+    flights[1].destination = "Dubai";
+    flights[1].cabinClass = "Economy";
+    flights[1].departureDate = "15-07-2025";
+    flights[1].creationDate = systemDate;
+    flights[1].updated = false;
+
+    // ---------------------------
+    // STEP 3: Set system date
+    // ---------------------------
+    systemDate = "01-06-2025";
+
+    // ---------------------------
+    // STEP 4: MARK DATA AS LOADED
+    // ---------------------------
+    dataLoaded = true;
+
+    cout << "\nData loaded successfully!\n";
+    cout << "Members loaded: " << memberCount << endl;
+    cout << "Flights loaded: " << flightCount << endl;
+    cout << "System date: " << systemDate << "\n";
 }
+
 
 // R2: Show all members
 void showAllMemberAccounts() {
@@ -214,9 +292,229 @@ void openOrCloseAccount() {
 
 // R4: Member operations
 void memberAccountOperations() {
-    // Write your R4 code here
-}
 
+    // Ask user to enter a Member Number
+    string memNum;
+    cout << "\nEnter Member Number: ";
+    cin >> memNum;
+
+    // Check if this member exists and is active
+    int idx = findMemberByNumber(memNum);
+    if (idx == -1) {
+        cout << "Member not found or inactive." << endl;
+        return;
+    }
+
+    // Submenu loop for R4
+    while (true) {
+        // Show R4 submenu
+        cout << "\n----- Member Account Operations -----" << endl;
+        cout << "[1] Edit Member Information" << endl;
+        cout << "[2] Update Mileage Points Balance" << endl;
+        cout << "[3] Create Flight Records" << endl;
+        cout << "[4] Redeem Mileage Points & Transfer" << endl;
+        cout << "[5] Return to Main Menu" << endl;
+        cout << "Option: ";
+
+        int op;
+        cin >> op;
+
+        // ------------------------------------------------------
+        // R4.1 Edit Member Information
+        // ------------------------------------------------------
+        if (op == 1) {
+            cout << "\n--- Current Member Information ---" << endl;
+                cout << "Member Number : " << members[idx].memberNumber << endl;
+                cout << "Name          : " << members[idx].name << endl;
+                cout << "Passport      : " << members[idx].passportNumber << endl;
+                cout << "Tier          : " << members[idx].tier << endl;
+                cout << "MRZ           : " << members[idx].mrz << endl;
+                cout << "Mileage       : " << members[idx].mileageBalance << endl;
+            cout << "\n--- Edit Member Info ---" << endl;
+
+            string newName, newPassport, newTier;
+
+            cout << "Enter new name: ";
+            cin.ignore();
+            getline(cin, newName);
+
+            cout << "Enter new passport: ";
+            cin >> newPassport;
+
+            cout << "Enter new tier: ";
+            cin >> newTier;
+
+            // Ask for confirmation
+            if (yesNoPrompt("Confirm update? (Y/N): ")) {
+                members[idx].name = newName;
+                members[idx].passportNumber = newPassport;
+                members[idx].tier = newTier;
+                members[idx].mrz = calculateMRZ(newPassport);
+
+                cout << "Member information updated successfully." << endl;
+                cout << "\n=== Updated Member Information ===" << endl;
+                        cout << "Member Number : " << members[idx].memberNumber << endl;
+                        cout << "Name          : " << members[idx].name << endl;
+                        cout << "Passport      : " << members[idx].passportNumber << endl;
+                        cout << "Tier          : " << members[idx].tier << endl;
+                        cout << "MRZ           : " << members[idx].mrz << endl;
+                        cout << "Mileage       : " << members[idx].mileageBalance << endl;
+                        cout << "===================================" << endl;
+            }
+        }
+
+        // ------------------------------------------------------
+        // R4.2 Update Mileage Points
+        // ------------------------------------------------------
+        else if (op == 2) {
+            cout << "\n--- Updating Mileage Points ---" << endl;
+
+            int totalEarned = 0;
+
+            // Check all flights for this member
+            for (int i = 0; i < flightCount; i++) {
+                if (flights[i].memberNumber == memNum &&
+                    flights[i].updated == false &&
+                    flights[i].departureDate <= systemDate) {
+
+                    // Calculate base points and bonus
+                    int base = getBaseMileage(flights[i].origin,
+                                             flights[i].destination,
+                                             flights[i].cabinClass);
+
+                    double bonusRate = getBonusPercent(members[idx].tier);
+                    int addPoints = base * (1 + bonusRate);
+
+                    totalEarned += addPoints;
+                    flights[i].updated = true;
+                }
+            }
+
+            // Add points to member balance
+            members[idx].mileageBalance += totalEarned;
+
+            cout << "Total points earned: " << totalEarned << endl;
+            cout << "New balance: " << members[idx].mileageBalance << endl;
+        }
+
+        // ------------------------------------------------------
+        // R4.3 Create Flight Record
+        // ------------------------------------------------------
+        else if (op == 3) {
+            cout << "\n--- Create New Flight ---" << endl;
+
+            string flightNum, cabin, depDate;
+
+            cout << "Enter Flight Number (e.g., CC81): ";
+            cin >> flightNum;
+
+            cout << "Enter Cabin Class (Economy/Business/First): ";
+            cin >> cabin;
+
+            cout << "Enter Departure Date (DD-MM-YYYY): ";
+            cin >> depDate;
+
+            // Get origin & destination automatically
+            string ori = getFlightOrigin(flightNum);
+            string dest = getFlightDest(flightNum);
+
+            if (ori.empty() || dest.empty()) {
+                cout << "Invalid flight number." << endl;
+                continue;
+            }
+
+            // Confirm before adding
+            if (yesNoPrompt("Add this flight? (Y/N): ")) {
+                flights[flightCount].memberNumber = memNum;
+                flights[flightCount].origin = ori;
+                flights[flightCount].destination = dest;
+                flights[flightCount].flightNumber = flightNum;
+                flights[flightCount].cabinClass = cabin;
+                flights[flightCount].departureDate = depDate;
+                flights[flightCount].creationDate = systemDate;
+                flights[flightCount].updated = false;
+
+                flightCount++;
+                cout << "Flight record created successfully." << endl;
+            }
+        }
+
+        // ------------------------------------------------------
+        // R4.4 Redeem Gift OR Transfer Points
+        // ------------------------------------------------------
+        else if (op == 4) {
+            cout << "\n[1] Redeem Gift" << endl;
+            cout << "[2] Transfer Points" << endl;
+            cout << "Option: ";
+            int subOp;
+            cin >> subOp;
+
+            // Redeem
+            if (subOp == 1) {
+                cout << "\n--- Redeem Mileage Points ---" << endl;
+                cout << "1. Movie voucher      (3000 points)" << endl;
+                cout << "2. $100 Super voucher (4000 points)" << endl;
+                cout << "3. Lounge access      (6000 points)" << endl;
+                cout << "Select gift: ";
+
+                int gift;
+                cin >> gift;
+                int cost = 0;
+
+                if (gift == 1) cost = 3000;
+                else if (gift == 2) cost = 4000;
+                else if (gift == 3) cost = 6000;
+
+                if (members[idx].mileageBalance >= cost) {
+                    members[idx].mileageBalance -= cost;
+                    cout << "Redeem successful! New balance: "
+                         << members[idx].mileageBalance << endl;
+                } else {
+                    cout << "Insufficient points." << endl;
+                }
+            }
+
+            // Transfer
+            else if (subOp == 2) {
+                cout << "\n--- Transfer Points ---" << endl;
+
+                string targetMemNum;
+                int amount;
+
+                cout << "Enter target member number: ";
+                cin >> targetMemNum;
+                cout << "Enter points to transfer: ";
+                cin >> amount;
+
+                int targetIdx = findMemberByNumber(targetMemNum);
+
+                if (targetIdx == -1 || amount <= 0 ||
+                    members[idx].mileageBalance < amount) {
+                    cout << "Transfer failed. Check balance or member ID." << endl;
+                    continue;
+                }
+
+                if (yesNoPrompt("Confirm transfer to "
+                        + members[targetIdx].name + "? (Y/N): ")) {
+                    members[idx].mileageBalance -= amount;
+                    members[targetIdx].mileageBalance += amount;
+                    cout << "Transfer successful!" << endl;
+                }
+            }
+        }
+
+        // ------------------------------------------------------
+        // R4.5 Back to Main Menu
+        // ------------------------------------------------------
+        else if (op == 5) {
+            cout << "Returning to Main Menu..." << endl;
+            break;
+        }
+        else {
+            cout << "Invalid option! Please try again." << endl;
+        }
+    }
+}
 // R5: Generate daily statement
 void generateDailyStatement() {
     // Write your R5 code here
@@ -243,12 +541,43 @@ int main() {
         cin >> option;
 
         switch (option) {
-            case 1: loadStartingData();            break;
-            case 2: showAllMemberAccounts();        break;
-            case 3: openOrCloseAccount();           break;
-            case 4: memberAccountOperations();      break;
-            case 5: generateDailyStatement();       break;
-            case 6: creditsAndExit(); return 0;     break;
+            case 1:
+                loadStartingData();
+                break;
+
+            case 2:
+                if (dataLoaded)
+                    showAllMemberAccounts();
+                else
+                    cout << "Error: Please load data first (Option 1)!" << endl;
+                break;
+
+            case 3:
+                if (dataLoaded)
+                    openOrCloseAccount();
+                else
+                    cout << "Error: Please load data first (Option 1)!" << endl;
+                break;
+
+            case 4:
+                if (dataLoaded)
+                    memberAccountOperations();
+                else
+                    cout << "Error: Please load data first (Option 1)!" << endl;
+                break;
+
+            case 5:
+                if (dataLoaded)
+                    generateDailyStatement();
+                else
+                    cout << "Error: Please load data first (Option 1)!" << endl;
+                break;
+
+            case 6:
+                creditsAndExit();
+                return 0;
+                break;
+
             default:
                 cout << "Invalid option! Enter 1-6." << endl;
                 break;
