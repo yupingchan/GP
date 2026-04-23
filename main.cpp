@@ -1,170 +1,54 @@
-/*
- * R1: Load Starting Data
- * This section handles loading initial member and flight records,
- * and setting up the system date.
- */
+// ==============================================
+// SEHH2042 Frequent Flyer Program System
+// CLEAN GROUP PROJECT FRAMEWORK
+// This is only a skeleton.
+// Each member fills their own R function.
+// Public functions are READY to use.
+// ==============================================
 
-// Constants
-const int MAX_RETRIES = 3;
-const string DEFAULT_SYSTEM_DATE = "30-06-2025";
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <iomanip>
+#include <cctype>
+#include <cstdlib>
+#include <ctime>
 
-// Global variables
-vector<Member> members;
-vector<Flight> flights;
-bool dataLoaded = false;
-string systemDate = DEFAULT_SYSTEM_DATE;
+using namespace std;
 
-// R1.1: Function to calculate MRZ check digit
-int calculateMRZ(const string& passportNumber) {
-    int total = 0;
-    int weights[] = {7, 3, 1, 7, 3, 1, 7, 3, 1};
-    
-    for (size_t i = 0; i < passportNumber.length() && i < 9; i++) {
-        int value;
-        char ch = passportNumber[i];
-        
-        if (isalpha(ch)) {
-            value = toupper(ch) - 'A' + 10;  // A=10, B=11, ..., Z=35
-        } else if (isdigit(ch)) {
-            value = ch - '0';
-        } else {
-            continue;
-        }
-        
-        total += value * weights[i];
-    }
-    
-    return total % 10;  // Check digit = Total mod 10
-}
+// ==============================================
+// ================================
+// PUBLIC COMMON AREA (SHARABLE)
+// All people can use these.
+// No need to rewrite.
+// ================================
+// ==============================================
 
-// R1.2: Function to validate date format and range
-bool isValidDate(const string& date) {
-    if (date.length() != 10) return false;
-    if (date[2] != '-' || date[5] != '-') return false;
-    
-    int day, month, year;
-    if (sscanf(date.c_str(), "%d-%d-%d", &day, &month, &year) != 3) return false;
-    
-    // Check range: 01-01-2025 to 31-12-2025 (inclusive)
-    if (year < 2025 || year > 2025) return false;
-    if (month < 1 || month > 12) return false;
-    if (day < 1 || day > 31) return false;
-    
-    // Simple day validation for each month
-    if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30) return false;
-    if (month == 2 && day > 29) return false;
-    
-    return true;
-}
+// 1. Fixed values (shared by everyone)
+const int MAX_MEMBERS = 100;
+const int MAX_FLIGHTS = 200;
+const string DEFAULT_DATE = "30-06-2025";
 
-// R1.2: Function to set system date
-void setSystemDate(string& systemDate) {
-    string input;
-    int attempts = 0;
-    
-    cout << "*** Set System Date for updating Mileage Points ***" << endl;
-    
-    while (attempts < MAX_RETRIES) {
-        cout << "Please enter system date (DD-MM-YYYY): ";
-        cin >> input;
-        
-        if (isValidDate(input)) {
-            systemDate = input;
-            cout << "System date set to: " << systemDate << endl;
-            return;
-        } else {
-            attempts++;
-            cout << "Error: Invalid date format or out of range (01-01-2025 to 31-12-2025)!" << endl;
-            if (attempts < MAX_RETRIES) {
-                cout << "You have " << (MAX_RETRIES - attempts) << " attempts remaining." << endl;
-            }
-        }
-    }
-    
-    // After 3 consecutive invalid inputs, use default date
-    systemDate = DEFAULT_SYSTEM_DATE;
-    cout << "Warning: Using default system date: " << systemDate << endl;
-}
-
-// R1.1 & R1.2: Main function to load starting data
-void loadStartingData() {
-    // Clear existing data
-    members.clear();
-    flights.clear();
-    
-    // R1.1: Load member account records (Table 1)
-    // Member(memberNumber, memberTier, passportNumber, mrz, memberName, mileagePointsBalance)
-    members.push_back(Member("202456734", "Gold", "A566778904", 0, "WONG Claire", 45000));
-    members.push_back(Member("202333890", "Green", "C786789085", 0, "MA Kathy", 10000));
-    members.push_back(Member("202067856", "Silver", "E388768901", 0, "CHAN Peter", 53200));
-    members.push_back(Member("202211843", "Gold", "E389000787", 0, "CHEUNG Alice", 30000));
-    
-    // Calculate MRZ for each member using the check digit algorithm
-    for (auto& member : members) {
-        int calculatedMRZ = calculateMRZ(member.getPassportNumber());
-        member.setMRZ(calculatedMRZ);
-    }
-    
-    // R1.1: Load flight records (Table 2)
-    // Flight(memberNumber, origin, destination, flightNumber, cabinClass, departureDate, creationDate, updated)
-    flights.push_back(Flight("202211843", "Hong Kong", "London", "CC81", "First", "28-05-2025", "01-05-2025", false));
-    flights.push_back(Flight("202211843", "London", "Hong Kong", "CC82", "First", "10-06-2025", "01-05-2025", false));
-    flights.push_back(Flight("202333890", "London", "Dubai", "CC61", "Economy", "12-06-2025", "10-06-2025", false));
-    flights.push_back(Flight("202067856", "Hong Kong", "Dubai", "CC31", "Business", "05-07-2025", "20-06-2025", false));
-    flights.push_back(Flight("202067856", "Dubai", "London", "CC62", "Business", "08-07-2025", "20-06-2025", false));
-    flights.push_back(Flight("202456734", "Dubai", "Hong Kong", "CC32", "Business", "05-08-2025", "02-08-2025", false));
-    
-    cout << "\nStarting data loaded successfully!\n" << endl;
-    
-    // R1.2: Set system date (called immediately after loading starting data)
-    setSystemDate(systemDate);
-    
-    dataLoaded = true;
-}
-
-// R1.3: Helper function to check if data is loaded (for options 2-5)
-bool isDataLoaded() {
-    if (!dataLoaded) {
-        cout << "Error: Please load starting data first (Option 1)!" << endl;
-        return false;
-    }
-    return true;
-}
-
-// Note: The Member and Flight classes used above are defined as:
-/*
+// 2. Classes (OOP Data Structure)
 class Member {
-private:
+public:
     string memberNumber;
-    string memberTier;
+    string tier;
     string passportNumber;
     int mrz;
-    string memberName;
-    int mileagePointsBalance;
-    
-public:
-    Member() : mrz(0), mileagePointsBalance(0) {}
-    
-    Member(string mn, string mt, string pn, int m, string name, int points)
-        : memberNumber(mn), memberTier(mt), passportNumber(pn), mrz(m), 
-          memberName(name), mileagePointsBalance(points) {}
-    
-    // Getters
-    string getMemberNumber() const { return memberNumber; }
-    string getMemberTier() const { return memberTier; }
-    string getPassportNumber() const { return passportNumber; }
-    int getMRZ() const { return mrz; }
-    string getMemberName() const { return memberName; }
-    int getMileagePointsBalance() const { return mileagePointsBalance; }
-    
-    // Setters
-    void setMRZ(int m) { mrz = m; }
-    void setMemberNumber(const string& mn) { memberNumber = mn; }
-    // ... other setters
+    string name;
+    int mileageBalance;
+    bool isActive;
+
+    Member() {
+        mileageBalance = 0;
+        isActive = true;
+    }
 };
 
 class Flight {
-private:
+public:
     string memberNumber;
     string origin;
     string destination;
@@ -173,15 +57,202 @@ private:
     string departureDate;
     string creationDate;
     bool updated;
-    
-public:
-    Flight() : updated(false) {}
-    
-    Flight(string mn, string o, string d, string fn, string cc, 
-           string dd, string cd, bool up)
-        : memberNumber(mn), origin(o), destination(d), flightNumber(fn), 
-          cabinClass(cc), departureDate(dd), creationDate(cd), updated(up) {}
-    
-    // Getters and setters...
+
+    Flight() {
+        updated = false;
+    }
 };
-*/
+
+// 3. Shared data
+Member members[MAX_MEMBERS];
+Flight flights[MAX_FLIGHTS];
+int memberCount = 0;
+int flightCount = 0;
+string systemDate;
+bool dataLoaded = false;
+
+// 4. Public helper functions
+bool isDateValid(string date) {
+    if (date.length() != 10 || date[2] != '-' || date[5] != '-')
+        return false;
+    string year = date.substr(6, 4);
+    return (year == "2025");
+}
+
+int calculateMRZ(string passport) {
+    int weights[] = {7, 3, 1, 7, 3, 1, 7, 3, 1};
+    int sum = 0;
+    for (int i = 0; i < 9; i++) {
+        char c = passport[i];
+        int value;
+        if (isalpha(c))
+            value = toupper(c) - 'A' + 10;
+        else
+            value = c - '0';
+        sum += value * weights[i];
+    }
+    return sum % 10;
+}
+
+string toUpper(string s) {
+    for (int i = 0; i < s.size(); i++) {
+        s[i] = toupper(s[i]);
+    }
+    return s;
+}
+
+bool yesNoPrompt(string message) {
+    char input;
+    while (true) {
+        cout << message;
+        cin >> input;
+        input = toupper(input);
+        if (input == 'Y') return true;
+        if (input == 'N') return false;
+        cout << "Please enter Y or N only." << endl;
+    }
+}
+
+int findMemberByNumber(string num) {
+    for (int i = 0; i < memberCount; i++) {
+        if (members[i].memberNumber == num && members[i].isActive)
+            return i;
+    }
+    return -1;
+}
+
+bool isPassportValid(string passport) {
+    if (passport.length() != 9) return false;
+    if (!isalpha(passport[0])) return false;
+    for (int i = 1; i < 9; i++) {
+        if (!isdigit(passport[i]))
+            return false;
+    }
+    return true;
+}
+
+string getFlightOrigin(string fn) {
+    if (fn == "CC81" || fn == "CC31" || fn == "CC32") return "Hong Kong";
+    if (fn == "CC82" || fn == "CC61") return "London";
+    if (fn == "CC62") return "Dubai";
+    return "";
+}
+
+string getFlightDest(string fn) {
+    if (fn == "CC81") return "London";
+    if (fn == "CC82") return "Hong Kong";
+    if (fn == "CC31") return "Dubai";
+    if (fn == "CC32") return "Hong Kong";
+    if (fn == "CC61") return "Dubai";
+    if (fn == "CC62") return "London";
+    return "";
+}
+
+int getBaseMileage(string o, string d, string cabin) {
+    if ((o == "Hong Kong" && d == "London") || (o == "London" && d == "Hong Kong")) {
+        if (cabin == "Economy") return 4000;
+        if (cabin == "Business") return 8000;
+        if (cabin == "First") return 16000;
+    }
+    if ((o == "Hong Kong" && d == "Dubai") || (o == "Dubai" && d == "Hong Kong")) {
+        if (cabin == "Economy") return 2000;
+        if (cabin == "Business") return 4000;
+        if (cabin == "First") return 8000;
+    }
+    if ((o == "London" && d == "Dubai") || (o == "Dubai" && d == "London")) {
+        if (cabin == "Economy") return 2000;
+        if (cabin == "Business") return 4000;
+        if (cabin == "First") return 8000;
+    }
+    return 0;
+}
+
+double getBonusPercent(string tier) {
+    if (tier == "Green")   return 0.00;
+    if (tier == "Silver")  return 0.02;
+    if (tier == "Gold")    return 0.04;
+    if (tier == "Diamond") return 0.06;
+    return 0.00;
+}
+
+// ==============================================
+// END OF PUBLIC COMMON AREA
+// ==============================================
+
+
+// ==============================================
+// R0 ~ R6 FUNCTIONS (EMPTY FRAMEWORK)
+// Each member writes code inside their own function.
+// ==============================================
+
+// R0: Show main menu
+void showMainMenu() {
+    cout << "\n*** FFP Main Menu ***" << endl;
+    cout << "[1] Load Starting Data" << endl;
+    cout << "[2] Show All Member Accounts" << endl;
+    cout << "[3] Open or Close Member Account" << endl;
+    cout << "[4] Member Account Operations" << endl;
+    cout << "[5] Generate Daily Statement" << endl;
+    cout << "[6] Credits and Exit" << endl;
+    cout << "Option (1 - 6): ";
+}
+
+// R1: Load starting data
+void loadStartingData() {
+    // Write your R1 code here
+}
+
+// R2: Show all members
+void showAllMemberAccounts() {
+    // Write your R2 code here
+}
+
+// R3: Open / Close account
+void openOrCloseAccount() {
+    // Write your R3 code here
+}
+
+// R4: Member operations
+void memberAccountOperations() {
+    // Write your R4 code here
+}
+
+// R5: Generate daily statement
+void generateDailyStatement() {
+    // Write your R5 code here
+}
+
+// R6: Credits and exit
+void creditsAndExit() {
+    // Write your R6 code here
+}
+
+// ==============================================
+// MAIN FUNCTION (PROGRAM STARTS HERE)
+// ==============================================
+int main() {
+    srand((unsigned int)time(NULL));
+
+    cout << "=========================================" << endl;
+    cout << "  Frequent Flyer Program System (FFP)" << endl;
+    cout << "=========================================" << endl;
+
+    while (true) {
+        showMainMenu();
+        int option;
+        cin >> option;
+
+        switch (option) {
+            case 1: loadStartingData();            break;
+            case 2: showAllMemberAccounts();        break;
+            case 3: openOrCloseAccount();           break;
+            case 4: memberAccountOperations();      break;
+            case 5: generateDailyStatement();       break;
+            case 6: creditsAndExit(); return 0;     break;
+            default:
+                cout << "Invalid option! Enter 1-6." << endl;
+                break;
+        }
+    }
+    return 0;
+}
