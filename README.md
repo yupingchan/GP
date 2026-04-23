@@ -1,43 +1,34 @@
-# Frequent Flyer Program (FFP)
-SEHH2242 Group Project
+# 代碼結構和小組分工說明
 
+### 1. 標頭檔（Header Files）
+引入程式所需的基本函式庫，用於輸入、輸出、字串處理與系統功能。
 
-## Code Structure
-The program uses a **clear, modular structure** designed for group collaboration.
+### 2. 公共區域（Public Common Area）
+這區塊放**所有成員共用**的內容，大家都可以直接使用：
+- 固定數值（系統上限、預設日期）
+- 兩個類別：`Member`（會員）、`Flight`（航班）
+- 共用資料（會員清單、航班清單、系統日期）
+- 公共工具函式（驗證格式、查詢會員、計算里程、確認 Y/N 等）
 
-## Group Work Logic
-- Public area: shared and reusable
-- Each R function: independent work
-- No conflict, clean, easy to maintain
-- 
-### 1. Header Files
-Include all required libraries for input, string, and data processing.
-- `iostream` – Input/output
-- `string` – String operations
-- `vector` / `algorithm` – Data handling
-- `cctype` – Character validation
-- `cstdlib` & `ctime` – System functions
+**不需要重複寫這些功能，直接呼叫即可。**
 
-### 2. Public Common Area
-Shared resources used by all functions:
-- Constants (system limits)
-- Two OOP classes: `Member` and `Flight`
-- Global data (members, flights, system date)
-- Public helper functions (validation, search, calculation, formatting)
+### 3. 功能模組（R0 – R6）
+每位小組成員負責**其中一個模組**，獨立完成：
+- R0：顯示主選單
+- R1：載入初始資料
+- R2：顯示所有會員
+- R3：開立 / 註銷會員帳號
+- R4：會員功能（修改資料、更新里程、新增航班、兌換禮品 & 轉移點數）
+- R5：產生里程報表
+- R6：顯示製作名單並離開
 
-### 3. Requirement Functions (R0 – R6)
-Each member implements one module:
-- R0: Show main menu
-- R1: Load initial data
-- R2: Display all members
-- R3: Open / close account
-- R4: Member operations (edit info, update points, add flight, redeem & transfer)
-- R5: Generate daily statement
-- R6: Exit program
+### 4. Main 函式
+負責選單切換、流程控制。
+**必須先執行 R1 載入資料**，才能使用 R2–R5 功能。
 
-### 4. Main Function
-Controls program flow, menu selection, and data access control.
-- Must run **R1 first** to load data before using R2–R5.
-
-
+## 撰寫規則
+1. 不要更動公共區域的程式碼
+2. 只在自己負責的 R 函式內寫程式
+3. 盡量使用公共工具函式，不要重複實作
+4. 保持程式簡潔、註釋清楚
 
