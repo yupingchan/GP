@@ -1,0 +1,187 @@
+/*
+ * R1: Load Starting Data
+ * This section handles loading initial member and flight records,
+ * and setting up the system date.
+ */
+
+// Constants
+const int MAX_RETRIES = 3;
+const string DEFAULT_SYSTEM_DATE = "30-06-2025";
+
+// Global variables
+vector<Member> members;
+vector<Flight> flights;
+bool dataLoaded = false;
+string systemDate = DEFAULT_SYSTEM_DATE;
+
+// R1.1: Function to calculate MRZ check digit
+int calculateMRZ(const string& passportNumber) {
+    int total = 0;
+    int weights[] = {7, 3, 1, 7, 3, 1, 7, 3, 1};
+    
+    for (size_t i = 0; i < passportNumber.length() && i < 9; i++) {
+        int value;
+        char ch = passportNumber[i];
+        
+        if (isalpha(ch)) {
+            value = toupper(ch) - 'A' + 10;  // A=10, B=11, ..., Z=35
+        } else if (isdigit(ch)) {
+            value = ch - '0';
+        } else {
+            continue;
+        }
+        
+        total += value * weights[i];
+    }
+    
+    return total % 10;  // Check digit = Total mod 10
+}
+
+// R1.2: Function to validate date format and range
+bool isValidDate(const string& date) {
+    if (date.length() != 10) return false;
+    if (date[2] != '-' || date[5] != '-') return false;
+    
+    int day, month, year;
+    if (sscanf(date.c_str(), "%d-%d-%d", &day, &month, &year) != 3) return false;
+    
+    // Check range: 01-01-2025 to 31-12-2025 (inclusive)
+    if (year < 2025 || year > 2025) return false;
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+    
+    // Simple day validation for each month
+    if ((month == 4 || month == 6 || month == 9 || month == 11) && day > 30) return false;
+    if (month == 2 && day > 29) return false;
+    
+    return true;
+}
+
+// R1.2: Function to set system date
+void setSystemDate(string& systemDate) {
+    string input;
+    int attempts = 0;
+    
+    cout << "*** Set System Date for updating Mileage Points ***" << endl;
+    
+    while (attempts < MAX_RETRIES) {
+        cout << "Please enter system date (DD-MM-YYYY): ";
+        cin >> input;
+        
+        if (isValidDate(input)) {
+            systemDate = input;
+            cout << "System date set to: " << systemDate << endl;
+            return;
+        } else {
+            attempts++;
+            cout << "Error: Invalid date format or out of range (01-01-2025 to 31-12-2025)!" << endl;
+            if (attempts < MAX_RETRIES) {
+                cout << "You have " << (MAX_RETRIES - attempts) << " attempts remaining." << endl;
+            }
+        }
+    }
+    
+    // After 3 consecutive invalid inputs, use default date
+    systemDate = DEFAULT_SYSTEM_DATE;
+    cout << "Warning: Using default system date: " << systemDate << endl;
+}
+
+// R1.1 & R1.2: Main function to load starting data
+void loadStartingData() {
+    // Clear existing data
+    members.clear();
+    flights.clear();
+    
+    // R1.1: Load member account records (Table 1)
+    // Member(memberNumber, memberTier, passportNumber, mrz, memberName, mileagePointsBalance)
+    members.push_back(Member("202456734", "Gold", "A566778904", 0, "WONG Claire", 45000));
+    members.push_back(Member("202333890", "Green", "C786789085", 0, "MA Kathy", 10000));
+    members.push_back(Member("202067856", "Silver", "E388768901", 0, "CHAN Peter", 53200));
+    members.push_back(Member("202211843", "Gold", "E389000787", 0, "CHEUNG Alice", 30000));
+    
+    // Calculate MRZ for each member using the check digit algorithm
+    for (auto& member : members) {
+        int calculatedMRZ = calculateMRZ(member.getPassportNumber());
+        member.setMRZ(calculatedMRZ);
+    }
+    
+    // R1.1: Load flight records (Table 2)
+    // Flight(memberNumber, origin, destination, flightNumber, cabinClass, departureDate, creationDate, updated)
+    flights.push_back(Flight("202211843", "Hong Kong", "London", "CC81", "First", "28-05-2025", "01-05-2025", false));
+    flights.push_back(Flight("202211843", "London", "Hong Kong", "CC82", "First", "10-06-2025", "01-05-2025", false));
+    flights.push_back(Flight("202333890", "London", "Dubai", "CC61", "Economy", "12-06-2025", "10-06-2025", false));
+    flights.push_back(Flight("202067856", "Hong Kong", "Dubai", "CC31", "Business", "05-07-2025", "20-06-2025", false));
+    flights.push_back(Flight("202067856", "Dubai", "London", "CC62", "Business", "08-07-2025", "20-06-2025", false));
+    flights.push_back(Flight("202456734", "Dubai", "Hong Kong", "CC32", "Business", "05-08-2025", "02-08-2025", false));
+    
+    cout << "\nStarting data loaded successfully!\n" << endl;
+    
+    // R1.2: Set system date (called immediately after loading starting data)
+    setSystemDate(systemDate);
+    
+    dataLoaded = true;
+}
+
+// R1.3: Helper function to check if data is loaded (for options 2-5)
+bool isDataLoaded() {
+    if (!dataLoaded) {
+        cout << "Error: Please load starting data first (Option 1)!" << endl;
+        return false;
+    }
+    return true;
+}
+
+// Note: The Member and Flight classes used above are defined as:
+/*
+class Member {
+private:
+    string memberNumber;
+    string memberTier;
+    string passportNumber;
+    int mrz;
+    string memberName;
+    int mileagePointsBalance;
+    
+public:
+    Member() : mrz(0), mileagePointsBalance(0) {}
+    
+    Member(string mn, string mt, string pn, int m, string name, int points)
+        : memberNumber(mn), memberTier(mt), passportNumber(pn), mrz(m), 
+          memberName(name), mileagePointsBalance(points) {}
+    
+    // Getters
+    string getMemberNumber() const { return memberNumber; }
+    string getMemberTier() const { return memberTier; }
+    string getPassportNumber() const { return passportNumber; }
+    int getMRZ() const { return mrz; }
+    string getMemberName() const { return memberName; }
+    int getMileagePointsBalance() const { return mileagePointsBalance; }
+    
+    // Setters
+    void setMRZ(int m) { mrz = m; }
+    void setMemberNumber(const string& mn) { memberNumber = mn; }
+    // ... other setters
+};
+
+class Flight {
+private:
+    string memberNumber;
+    string origin;
+    string destination;
+    string flightNumber;
+    string cabinClass;
+    string departureDate;
+    string creationDate;
+    bool updated;
+    
+public:
+    Flight() : updated(false) {}
+    
+    Flight(string mn, string o, string d, string fn, string cc, 
+           string dd, string cd, bool up)
+        : memberNumber(mn), origin(o), destination(d), flightNumber(fn), 
+          cabinClass(cc), departureDate(dd), creationDate(cd), updated(up) {}
+    
+    // Getters and setters...
+};
+*/
