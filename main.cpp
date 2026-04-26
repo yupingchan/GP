@@ -282,7 +282,85 @@ void loadStartingData() {
 
 // R2: Show all members
 void showAllMemberAccounts() {
-    // Write your R2 code here
+    cout << "\n=== Member Account Records ===\n";
+
+    // 1. Member sorting (in ascending order of surname)
+    for (int i = 0; i < memberCount - 1; i++) {
+        for (int j = i + 1; j < memberCount; j++) {
+            if (members[i].name > members[j].name) {
+                Member temp = members[i];
+                members[i] = members[j];
+                members[j] = temp;
+            }
+        }
+    }
+
+    // 2. Display member table
+    cout << left << setw(12) << "MemberNo"
+         << setw(8)  << "Tier"
+         << setw(15) << "Passport"
+         << setw(5)  << "MRZ"
+         << setw(20) << "Name"
+         << setw(10) << "Mileage" << endl;
+    cout << string(70, '-') << endl;
+
+    for (int i = 0; i < memberCount; i++) {
+        if (members[i].isActive) {
+            cout << left << setw(12) << members[i].memberNumber
+                 << setw(8)  << members[i].tier
+                 << setw(15) << members[i].passportNumber
+                 << setw(5)  << members[i].mrz
+                 << setw(20) << members[i].name
+                 << setw(10) << members[i].mileageBalance
+                 << endl;
+        }
+    }
+
+    // 3. Filter flight records (only show updated == false)
+    Flight unupdated[MAX_FLIGHTS];
+    int unupdatedCount = 0;
+    for (int i = 0; i < flightCount; i++) {
+        if (!flights[i].updated) {
+            unupdated[unupdatedCount++] = flights[i];
+        }
+    }
+
+    // 4. Flights sorted (in descending order of departure date)
+    for (int i = 0; i < unupdatedCount - 1; i++) {
+        for (int j = i + 1; j < unupdatedCount; j++) {
+            if (unupdated[i].departureDate < unupdated[j].departureDate) {
+                Flight temp = unupdated[i];
+                unupdated[i] = unupdated[j];
+                unupdated[j] = temp;
+            }
+        }
+    }
+
+    // 5. Display flight table
+    cout << "\n=== Flight Records (Unupdated) ===\n";
+    cout << left << setw(12) << "MemberNo"
+         << setw(12) << "Origin"
+         << setw(12) << "Destination"
+         << setw(10) << "FlightNo"
+         << setw(10) << "Cabin"
+         << setw(12) << "Departure"
+         << setw(12) << "Creation"
+         << setw(8)  << "Updated" << endl;
+    cout << string(90, '-') << endl;
+
+    for (int i = 0; i < unupdatedCount; i++) {
+        cout << left << setw(12) << unupdated[i].memberNumber
+             << setw(12) << unupdated[i].origin
+             << setw(12) << unupdated[i].destination
+             << setw(10) << unupdated[i].flightNumber
+             << setw(10) << unupdated[i].cabinClass
+             << setw(12) << unupdated[i].departureDate
+             << setw(12) << unupdated[i].creationDate
+             << setw(8)  << (unupdated[i].updated ? "1" : "0")
+             << endl;
+    }
+
+    cout << "\nReturning to Main Menu...\n";
 }
 
 // R3: Open / Close account
