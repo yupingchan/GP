@@ -365,7 +365,152 @@ void showAllMemberAccounts() {
 
 // R3: Open / Close account
 void openOrCloseAccount() {
-    // Write your R3 code here
+    void openOrCloseAccount() {
+    //enter number
+    string memNum;
+    cout << "\nEnter Member Number: ";
+    cin >> memNum;
+    cin.clear();
+    cin.ignore(10000, '\n');
+    //open acount R3.1
+    if (findMemberByNumber(memNum) == -1) {
+        //check full or not 
+        if (memberCount >= MAX_MEMBERS) {
+            cout << "System full! Cannot add more members." << endl;
+            return;
+        }
+        //open acount
+        cout << "\n--- Open New Member Account ---" << endl;
+        int attemptCount = 0;
+        bool nameSuccess = false, passportSuccess = false, tierSuccess = false;
+        string newName, newPassport, newTier;
+        //main logic
+        while (attemptCount < 3) {
+            bool stepFailed = false;
+            //name 
+            if (!nameSuccess) {
+                cout << "Please input your name: ";
+                getline(cin, newName);
+                //check lenght
+                if (newName.length() > 30 || newName.length() == 0) {
+                    cout << "\nYour name have to be between 1-30" << endl;
+                    stepFailed = true;
+                }
+                else {
+                    //locate surname
+                    int space = newName.length();
+                    for (int i = 0; i < newName.length(); i++) {
+                        if (newName[i] == ' ') {
+                            space = i;
+                            break;
+                        }
+                    }
+                    //trun to capital letter with surname
+                    string surname = newName.substr(0, space);
+                    string restOfTheName = newName.substr(space);
+                    surname = toUpper(surname);
+                    newName = surname + restOfTheName;
+                    nameSuccess = true;
+                }
+            }
+            //passport number
+            if (!stepFailed && !passportSuccess) {
+                cout << "please input your passport number(e.g H12345678): ";
+                cin >> newPassport;
+                cin.clear();
+                cin.ignore(10000, '\n');
+                //check format
+                if (!isPassportValid(newPassport)) {
+                    cout << "\nYour passport number wrong" << endl;
+                    stepFailed = true;
+                }
+                else {
+                    passportSuccess = true; 
+                }
+            }
+            //member tier
+            if (!stepFailed && !tierSuccess) {
+                cout << "Please input Member Tier (Green, Silver, Gold, Diamond): ";
+                cin >> newTier;
+                cin.clear();
+                cin.ignore(10000, '\n');
+                //enter tier
+                if (newTier == "Green" || newTier == "Silver" || newTier == "Gold" || newTier == "Diamond") {
+                    tierSuccess = true;
+                }
+                else {
+                    cout << "Invalid tier selected." << endl;
+                    stepFailed = true;
+                }
+
+            }
+            if (!stepFailed) {
+                break;
+            }
+            else {
+                cout << "please try again you remain " << 2 - attemptCount << " to try" << endl;
+                attemptCount++;
+            }
+        }
+        //if too many error input retrun main meun
+        if (!nameSuccess || !passportSuccess || !tierSuccess) {
+            cout << "Too many invalid attempts. Returning to Main Menu." << endl;
+            return;
+        }
+        //generate mrz,id
+        cout << "Information verified successfully!" << endl;
+        int mrzCode = calculateMRZ(newPassport);
+        string newMemberID = "2026" + to_string(rand() % 90000 + 10000);
+        //save data
+        members[memberCount].memberNumber = newMemberID;
+        members[memberCount].name = newName;
+        members[memberCount].passportNumber = newPassport;
+        members[memberCount].tier = newTier;
+        members[memberCount].mrz = mrzCode;
+        members[memberCount].mileageBalance = 0;   
+        members[memberCount].isActive = true;
+        memberCount++;
+        cout << "Account created successfully! Your Member Number is: " << newMemberID << endl;
+    }
+    //delete acount R3.2
+    else {
+        //print data
+        int idx = findMemberByNumber(memNum);
+        cout << "\n--- Member Information ---" << endl;
+        cout << "Member Number : " << members[idx].memberNumber << endl;
+        cout << "Name          : " << members[idx].name << endl;
+        cout << "Passport      : " << members[idx].passportNumber << endl;
+        cout << "Tier          : " << members[idx].tier << endl;
+        cout << "MRZ           : " << members[idx].mrz << endl;
+        cout << "Mileage       : " << members[idx].mileageBalance << endl;
+        if (yesNoPrompt("Please enter (Y/y) to confirm delete your account or enter (N/n) to cancel: ")) {
+            //detel flight
+            for (int i = 0; i < flightCount; ) {
+                if (flights[i].memberNumber == memNum) {
+                    for (int j = i; j < flightCount - 1; j++) {
+                        flights[j] = flights[j + 1];
+                    }
+                    flightCount--; 
+                }
+                else {
+                    i++;
+                }
+            }
+            //move mumber id
+            for (int i = idx; i < memberCount - 1; i++) {
+                members[i] = members[i + 1]; 
+            }
+            memberCount--;
+            cout << "Account successfully deleted.Returning to menu." << endl;
+            return;
+        }
+        else {
+            //how to retrun
+            cout << "Account deletion cancelled. Returning to menu." << endl;
+            return;
+        }
+    }
+}
 }
 
 // R4: Member operations
