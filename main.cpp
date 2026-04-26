@@ -365,7 +365,6 @@ void showAllMemberAccounts() {
 
 // R3: Open / Close account
 void openOrCloseAccount() {
-    void openOrCloseAccount() {
     //enter number
     string memNum;
     cout << "\nEnter Member Number: ";
@@ -511,7 +510,7 @@ void openOrCloseAccount() {
         }
     }
 }
-}
+
 
 // R4: Member operations
 void memberAccountOperations() {
