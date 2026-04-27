@@ -738,9 +738,67 @@ void memberAccountOperations() {
     }
 }
 // R5: Generate daily statement
-void generateDailyStatement() {
-    // Write your R5 code here
+    string memNum;
+    cout << "\nEnter Member Number: ";
+    cin >> memNum;
+
+    int idx = findMemberByNumber(memNum);
+    if (idx == -1) {
+        cout << "Error: Member not found or inactive." << endl;
+        return;
+    }
+
+    cout << "\n=== Daily Statement ===" << endl;
+    cout << "Member Name   : " << members[idx].name << endl;
+    cout << "Member Number : " << members[idx].memberNumber << endl;
+    cout << "Statement Date: " << systemDate << endl;
+    cout << "------------------------------------------------------------" << endl;
+
+    // Transaction Summary (simple demo: show redemption if any)
+    cout << "Transaction Summary:" << endl;
+    cout << left << setw(12) << "Type"
+         << setw(10) << "Mileage"
+         << setw(20) << "Description" << endl;
+
+    // 暫時冇交易紀錄，可以擴展到 R4 Redeem Gift
+    cout << "No transactions recorded." << endl;
+    cout << "------------------------------------------------------------" << endl;
+
+    // Upcoming Itinerary
+    cout << "Upcoming Itinerary:" << endl;
+    cout << left << setw(12) << "Origin"
+         << setw(12) << "Destination"
+         << setw(12) << "Flight No"
+         << setw(12) << "Cabin"
+         << setw(12) << "Departure" << endl;
+
+    bool hasUpcoming = false;
+    for (int i = 0; i < flightCount; i++) {
+        if (flights[i].memberNumber == memNum &&
+            !flights[i].updated &&
+            flights[i].departureDate > systemDate) {
+            cout << left << setw(12) << flights[i].origin
+                 << setw(12) << flights[i].destination
+                 << setw(12) << flights[i].flightNumber
+                 << setw(12) << flights[i].cabinClass
+                 << setw(12) << flights[i].departureDate << endl;
+            hasUpcoming = true;
+        }
+    }
+    if (!hasUpcoming) {
+        cout << "No upcoming flights." << endl;
+    }
+    cout << "------------------------------------------------------------" << endl;
+
+    // Member Account Summary
+    cout << "Member Account Summary:" << endl;
+    cout << "Total Mileage Points Balance : " << members[idx].mileageBalance << endl;
+    cout << "Member Tier                  : " << members[idx].tier << endl;
+    cout << "Bonus Mileage Points         : " << (getBonusPercent(members[idx].tier) * 100) << "%" << endl;
+
+    cout << "\nReturning to Main Menu...\n";
 }
+
 
 // R6: Credits and exit
 void creditsAndExit() {
